@@ -298,6 +298,14 @@ class Transaction(BaseSpan):
             logger.debug("Set parent id to generated %s", self.trace_parent.span_id)
         return self.trace_parent.span_id
 
+    def _fix_context(self, context):
+        if isinstance(context, dict):
+            for k,v in context.items():
+                context[k] = self._fix_context(v)
+        elif isinstance(context, str):
+            context = encoding.keyword_field(context)
+        return context
+
     def to_dict(self):
         self.context["tags"] = self.labels
         result = {
@@ -318,6 +326,8 @@ class Transaction(BaseSpan):
                 result["parent_id"] = self.trace_parent.span_id
         if self.is_sampled:
             result["context"] = self.context
+        if result["context"]:
+            result["context"] = self._fix_context(result["context"])
         return result
 
     def track_span_duration(self, span_type, span_subtype, self_duration):
