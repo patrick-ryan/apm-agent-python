@@ -326,7 +326,7 @@ class Transaction(BaseSpan):
                 result["parent_id"] = self.trace_parent.span_id
         if self.is_sampled:
             result["context"] = self.context
-        if result["context"]:
+        if result.get("context"):
             result["context"] = self._fix_context(result["context"])
         return result
 
